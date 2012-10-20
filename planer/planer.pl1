@@ -1,0 +1,25 @@
+% # of values | sorted | cardinality | small domain | compound | 
+
+rdp_main(_, _, _, D, 1, ns) :- D < 4.
+%rdp_main(_, _, _, D, 1, nsv) :- D < 4.
+rdp_main(N, _, C, _, 1, dict) :- N/C > 2000.
+%rdp_main(N, yes, C, _, 1, rle) :- N/C > 4.
+%rdp_main(N, yes, C, _, 1, bitmap) :- N/C > 20000.
+rdp_aux(_, _, _, D, 1, for) :- D < 4.
+rdp_aux(_, yes, _, _, 1, delta).
+%rdp_aux(_, _, _, _, P, sep) :- P > 1.
+rdp_aux(_, _, _, _, P, scale):- P > 1.
+
+planer_main(N, S, C, D, P, [X]):- rdp_main(N, S, C, D, P, X).
+
+planer_aux(N, S, C, D, P, [for|Y]):- rdp_aux(N, S, C, D, P, for), planer_main(N, S, N, D, P, Y).
+planer_aux(N, S, C, D, P, [delta|Y]):- rdp_aux(N, S, C, D, P, delta), planer_main(N, no, C, 3, P, Y).
+
+planer_main(N, S, C, D, P, [ns|Y]):- rdp_main(N, S, C, D, P, ns), planer_main(N, S, C, 4, P, Y).
+planer_main(N, S, C, D, P, [ns|Y]):- rdp_main(N, S, C, D, P, ns), planer_aux(N, S, C, 4, P, Y).
+planer_main(N, S, C, D, P, [dict|Y]):- rdp_main(N, S, C, D, P, dict), planer_main(N, S, N, 3, P, Y).
+planer_main(N, S, C, D, P, [dict|Y]):- rdp_main(N, S, C, D, P, dict), planer_aux(N, S, N, 3, P, Y).
+planer_main(N, S, C, D, P, [bitmap|Y]):- rdp_main(N, S, C, D, P, bitmap).
+
+planer(N, S, C, D, P, X):- planer_main(N, S, C, D, P, X).
+planer(N, S, C, D, P, X):- planer_aux(N, S, C, D, P, X).
